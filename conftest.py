@@ -5,6 +5,8 @@ Requieren `npx supabase start` y las claves en .env. Se saltan si Supabase no re
 
 from __future__ import annotations
 
+import asyncio
+import sys
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -15,6 +17,13 @@ import psycopg
 import pytest
 
 from vitrina_core.config import Settings
+
+
+def pytest_asyncio_loop_factories(config: Any, item: Any) -> dict[str, Any]:
+    # psycopg async no funciona con el ProactorEventLoop por defecto de Windows.
+    if sys.platform == "win32":
+        return {"selector": asyncio.SelectorEventLoop}
+    return {"default": asyncio.new_event_loop}
 
 
 @dataclass(frozen=True)
