@@ -1,0 +1,35 @@
+{
+  "name": "@vitrina/renderer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Render de video modo plantilla (Remotion) expuesto por HTTP.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "start": "tsx server/index.ts",
+    "render:demo": "remotion render src/index.ts SocialPost out/demo.mp4",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.545",
+    "@remotion/cli": "4.0.545",
+    "@remotion/renderer": "4.0.545",
+    "express": "^5.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remotion": "4.0.545",
+    "tsx": "^4.19.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.35.0"
+  }
+}

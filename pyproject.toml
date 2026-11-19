@@ -50,7 +50,7 @@ files = ["packages/core/src", "apps/api/src", "apps/worker/src", "scripts"]
 strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
-mypy_path = "packages/core/src:apps/api/src:apps/worker/src"
+mypy_path = "packages/core/src:apps/api/src:apps/worker/src:scripts"
 explicit_package_bases = true
 exclude = ["apps/tts/", "node_modules/"]
 
