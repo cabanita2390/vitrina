@@ -70,6 +70,21 @@ npm run lint; npm run typecheck
 - Aplicar desde cero: `npx supabase db reset`.
 - Las migraciones son la **única** fuente de verdad del esquema y la RLS.
 
+## Web y contrato de la API
+
+```powershell
+npm run dev -w apps/web          # http://127.0.0.1:5173
+npm run gen:api -w apps/web      # regenera el cliente TS desde el OpenAPI de FastAPI
+```
+
+## Mediciones
+
+```powershell
+docker compose up -d tts renderer
+uv run python scripts/tts_bench.py --container vitrina-tts-1   # audios en apps/tts/bench/out/
+cd scripts; uv run python render_bench.py                       # video en apps/renderer/out/
+```
+
 ## Sin clave de Claude
 
 Todo arranca sin `ANTHROPIC_API_KEY`. Las llamadas al LLM devuelven el error

@@ -25,7 +25,7 @@ No los modifiques salvo que Felipe lo pida; las decisiones técnicas van en docs
 - Cerebro/ideación: Claude vía API (prompts y herramientas propias versionadas en el repo; Agent Skills solo donde aporten). Haiku por defecto, Sonnet donde haga falta calidad.
 - Video modo plantilla: Remotion (servicio Node `apps/renderer`) + FFmpeg para utilidades.
 - Video modo IA: agregador (fal.ai / Replicate / similar) -> Seedance, Kling, Veo.
-- Voz estándar: Kokoro-82M (Apache-2.0) en servicio propio `apps/tts`. Voces español: ef_dora, em_alex, em_santa. Requiere espeak-ng.
+- Voz estándar: Kokoro-82M (Apache-2.0) en servicio propio `apps/tts`. Voces español: ef_dora, em_alex, em_santa. Requiere espeak-ng. Fonetización `es-419` (seseo). Los textos deben pasar por un normalizador (precios, horas, teléfonos) antes de sintetizar.
 - Archivos: Cloudflare R2 (S3 compatible), buckets dev/prod. Sin MinIO.
 - Observabilidad: Sentry, logs estructurados, Langfuse.
 - Infra futura: VPS + Coolify (Docker). Por ahora todo en local.
