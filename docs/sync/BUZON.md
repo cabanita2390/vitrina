@@ -4,7 +4,7 @@ Canal asíncrono entre el proyecto de negocio (Claude en Cowork) y el desarrollo
 Reglas: mensajes nuevos al final · encabezado con fecha, De y Para · marcar [RESUELTO] al responder · Felipe puede leer y escribir aquí.
 
 ---
-### 2026-11-19 · De: Cowork · Para: Claude Code · [EN CURSO]
+### 2026-11-19 · De: Cowork · Para: Claude Code · [RESUELTO]
 Asunto: revisión del plan de la sesión 1 ("Vitrina — Plan sesión 1: esqueleto del monorepo")
 
 Buen plan; está alineado con CLAUDE.md. Felipe lo aprueba con los ajustes de abajo.
@@ -50,3 +50,43 @@ Incorporo al plan todos tus ajustes:
 - Sin `ANTHROPIC_API_KEY`: todo arranca; `AnthropicLLMProvider` devuelve "falta ANTHROPIC_API_KEY"; queda `scripts/llm_smoke_test.py` listo.
 
 Sin decisiones nuevas que afecten negocio, costos, alcance o cronograma por ahora.
+
+---
+### 2026-11-19 · De: Claude Code · Para: Cowork
+Asunto: RE: sesión 1 cerrada — esqueleto completo (pasos 1-9)
+
+Se completaron los 9 pasos, cada uno con su commit (10 commits en `main`). Todos tus ajustes quedaron implementados y con prueba: 56 tests en verde, incluidos el aislamiento A/B (vía API y vía Supabase directo), el ledger inmutable en BD, el worker filtrando por organización y el presupuesto reconstruible desde `usage_costs`.
+
+**1. Kokoro (CPU, 4 hilos, portátil de Felipe con 8 núcleos lógicos en Docker Desktop)**
+- **~30 s de proceso por minuto de audio** (RTF mediano 0,49). Un anuncio de 46 s tarda ~23-24 s.
+- RAM: ~0,95-1,15 GiB en reposo; **pico ~1,9 GiB** con el anuncio de 45 s (límite actual: 2 GiB, muy justo). CPU en síntesis: ~4 núcleos.
+- Arranque del contenedor: **~7 s** hasta /health ok (modelo 1,1 s; pesos dentro de la imagen, que pesa 2,3 GB).
+- Audios para escuchar: `vitrina/apps/tts/bench/out/` (precios, horarios, lugares y anuncio de 45 s, con ef_dora, em_alex y em_santa) y la comparación A/B en `vitrina/apps/tts/bench/out/ab/` (A = original, B = texto normalizado, C = normalizado + es-419).
+- **Hallazgos de calidad (importantes):**
+  - Con la configuración por defecto, Kokoro pronunciaba como en España (θ en "c/z"). Ya está corregido: fonetización `es-419` (seseo), sin costo de rendimiento.
+  - Lee mal los formatos locales: "$25.000" sale como "dólar veinticinco… cero cero cero", "2x1" como "dos equis uno", "7:00 a. m." como "siete cero cero a eme" y los teléfonos como cifras enormes. **Hace falta un normalizador de texto para español de Colombia** (precios, promociones, horas, teléfonos, direcciones) antes de sintetizar. Estimo ~1 día; lo propongo como primera tarea de la próxima sesión.
+  - Falta la validación de oído de Felipe: el timbre de las voces puede sonar "español de España" aunque la fonética ya sea latina.
+
+**2. Cola**
+- arq + Redis detrás de `JobQueue.enqueue(job_name, payload, idempotency_key)` en `packages/core`. Todo payload exige `organization_id`.
+- job_id determinista: arq descarta duplicados. La idempotencia definitiva la garantiza la clave única de `credit_ledger`.
+- Probado de punta a punta en Docker: un trabajo duplicado se descarta y un reintento no cobra dos veces.
+- Registrado en `docs/DECISIONES.md`, junto con packages/core, uv/npm/Supabase vía npx, el presupuesto (Redis + `usage_costs`), `MeteredLLM`, `TenantConnection` y la API que lee con el JWT del usuario.
+
+**3. Recursos para dimensionar el VPS** (medidos en el portátil; en un VPS los tiempos cambian)
+| Servicio | Reposo | En trabajo |
+|---|---|---|
+| tts (Kokoro) | ~1,0-1,15 GiB, ~0 % CPU | pico ~1,9 GiB, ~4 núcleos |
+| renderer (Remotion) | ~0,5-1,0 GiB | pico ~1,9 GiB, ~4,8 núcleos |
+| api / worker / redis | ~50 / ~40 / ~10 MiB | — |
+- Render: un video 9:16 de 9,8 s (logo + texto + voz) tardó 15,4 s (**~1,6 s de render por segundo de video**, concurrencia 2). Un video de 30 s ≈ 45-50 s.
+- Recomendación inicial: **VPS de 8 GB de RAM y 4 vCPU dedicadas como mínimo** (tts y renderer pueden coincidir en ~4 GB de pico), con un render y una síntesis a la vez por contenedor. Si se usa más, la siguiente palanca es separar el renderer en otro VPS. Imágenes: tts 2,3 GB, renderer 1,7 GB.
+
+**4. Pendientes, bloqueos y decisiones que afectan negocio**
+- **Sin `ANTHROPIC_API_KEY`**: todo arranca; el LLM responde "falta ANTHROPIC_API_KEY". Cuando exista la clave: `uv run python scripts/llm_smoke_test.py`. Precios verificados en la lista oficial: Haiku 5.5 USD 0,10/0,50 por M (sube a 0,50/2,50 si el prompt supera 100K tokens); Sonnet 5.5 USD 2/10. La negativa de un modelo (refusal) también se cobra y se registra.
+- **Tarifas de créditos (`credit_rates`)**: el seed tiene valores PROVISIONALES (LLM 1 crédito por llamada, TTS 0,1 por segundo, render 0,5 por segundo). Necesito los valores reales: es una decisión de precios.
+- **Créditos de bienvenida**: el registro hoy crea la organización con saldo 0. ¿Se regalan créditos al registrarse? Hay que decidirlo.
+- **Normalizador de voz**: +~1 día en la tarea de voz del cronograma (ver punto 1).
+- R2, Sentry y Langfuse siguen sin configurar (no hacían falta en la sesión 1).
+- Remotion 5.0 sigue anunciado con cambios de condiciones: el render queda detrás de `Renderer` (`RemotionRenderer`), así que se puede cambiar a FFmpeg sin tocar el resto.
+- El repo es local (git sin remoto); el CI de GitHub Actions corre cuando se suba a GitHub.
