@@ -1,4 +1,4 @@
-"""Fixtures para tests contra Supabase local (marcador `db`).
+"""Fixtures compartidas para tests contra Supabase local (marcador `db`).
 
 Requieren `npx supabase start` y las claves en .env. Se saltan si Supabase no responde.
 """
@@ -15,8 +15,6 @@ import psycopg
 import pytest
 
 from vitrina_core.config import Settings
-
-pytestmark = pytest.mark.db
 
 
 @dataclass(frozen=True)
@@ -95,9 +93,7 @@ def _create_user(settings: Settings, service_headers: dict[str, str], business: 
 
 
 @pytest.fixture
-def make_user(
-    settings: Settings, service_headers: dict[str, str]
-) -> Iterator[Any]:
+def make_user(settings: Settings, service_headers: dict[str, str]) -> Iterator[Any]:
     created: list[TenantUser] = []
 
     def _make(business: str) -> TenantUser:
@@ -121,6 +117,8 @@ def rest(settings: Settings, anon_key: str) -> Any:
 
     def _client(token: str | None) -> httpx.Client:
         headers = {"apikey": anon_key, "Authorization": f"Bearer {token or anon_key}"}
-        return httpx.Client(base_url=f"{settings.supabase_url}/rest/v1", headers=headers, timeout=10)
+        return httpx.Client(
+            base_url=f"{settings.supabase_url}/rest/v1", headers=headers, timeout=10
+        )
 
     return _client

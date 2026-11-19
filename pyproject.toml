@@ -37,6 +37,9 @@ extend-exclude = ["apps/tts", "apps/web", "apps/renderer"]
 select = ["E", "F", "W", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "PL"]
 ignore = ["PLR0913", "PLR2004"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["vitrina_core", "vitrina_api", "vitrina_worker"]
+
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106", "PLR2004"]
 "scripts/**" = ["T201", "S"]
