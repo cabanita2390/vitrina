@@ -5,6 +5,7 @@ Ejecutar: `arq vitrina_worker.main.WorkerSettings`
 
 from __future__ import annotations
 
+import logging
 from typing import Any, ClassVar
 
 from arq.connections import RedisSettings
@@ -19,6 +20,7 @@ _settings = get_settings()
 
 async def startup(ctx: dict[str, Any]) -> None:
     configure_logging(_settings.log_level)
+    logging.getLogger("arq").propagate = False  # arq ya tiene su handler
     pool = TenantDB.create_pool(_settings.database_url)
     await pool.open()
     ctx["db_pool"] = pool

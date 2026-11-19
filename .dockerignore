@@ -1,0 +1,14 @@
+.git
+.venv
+node_modules
+**/node_modules
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+.env
+apps/web
+apps/renderer/out
+apps/tts
+supabase
+docs

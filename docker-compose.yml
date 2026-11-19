@@ -1,0 +1,62 @@
+# Servicios locales de Vitrina. Supabase corre aparte con `npx supabase start`.
+# Los contenedores llegan a Supabase por host.docker.internal.
+name: vitrina
+
+x-python-env: &python-env
+  env_file: .env
+  environment:
+    SUPABASE_URL: ${SUPABASE_URL_DOCKER:-http://host.docker.internal:54321}
+    DATABASE_URL: ${DATABASE_URL_DOCKER:-postgresql://postgres:postgres@host.docker.internal:54322/postgres}
+    REDIS_URL: redis://redis:6379/0
+    TTS_URL: http://tts:8100
+    RENDERER_URL: http://renderer:8200
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb"]
+    ports: ["6379:6379"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: docker/python.Dockerfile, target: api }
+    <<: *python-env
+    ports: ["8000:8000"]
+    depends_on:
+      redis: { condition: service_healthy }
+
+  worker:
+    build: { context: ., dockerfile: docker/python.Dockerfile, target: worker }
+    <<: *python-env
+    depends_on:
+      redis: { condition: service_healthy }
+
+  tts:
+    build: { context: apps/tts }
+    image: vitrina-tts:dev
+    ports: ["8100:8100"]
+    environment:
+      OMP_NUM_THREADS: ${TTS_THREADS:-4}
+    deploy:
+      resources:
+        limits: { memory: 2g }
+
+  renderer:
+    build: { context: apps/renderer }
+    ports: ["8200:8200"]
+    environment:
+      RENDER_CONCURRENCY: ${RENDER_CONCURRENCY:-2}
+    volumes: [renderer-out:/app/out]
+    deploy:
+      resources:
+        limits: { memory: 3g }
+
+volumes:
+  redis-data:
+  renderer-out:
