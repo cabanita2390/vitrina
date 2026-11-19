@@ -1,0 +1,15 @@
+[project]
+name = "vitrina-worker"
+version = "0.1.0"
+description = "Worker de trabajos asíncronos de Vitrina (arq)."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "vitrina-core",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vitrina_worker"]
