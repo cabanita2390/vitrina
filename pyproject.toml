@@ -1,0 +1,60 @@
+# Raíz del workspace Python (uv). apps/tts queda fuera: tiene dependencias pesadas
+# (torch, kokoro) y su propia imagen Docker.
+[project]
+name = "vitrina-workspace"
+version = "0.0.0"
+requires-python = ">=3.12,<3.13"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/core", "apps/api", "apps/worker"]
+
+[tool.uv.sources]
+vitrina-core = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "httpx>=0.28",
+  "fakeredis>=2.26",
+  "psycopg[binary]>=3.2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["apps/tts", "apps/web", "apps/renderer"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "PL"]
+ignore = ["PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106", "PLR2004"]
+"scripts/**" = ["T201", "S"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+mypy_path = "packages/core/src:apps/api/src:apps/worker/src"
+explicit_package_bases = true
+exclude = ["apps/tts/", "node_modules/"]
+
+[[tool.mypy.overrides]]
+module = ["arq.*", "fakeredis.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["packages/core/tests", "apps/api/tests", "apps/worker/tests", "supabase/tests"]
+markers = [
+  "db: requiere Supabase local corriendo (npx supabase start)",
+]

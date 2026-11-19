@@ -1,0 +1,41 @@
+# Secretos
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+build/
+out/
+*.tsbuildinfo
+.vite/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Salidas generadas (audios de benchmark, renders)
+apps/tts/bench/out/
+apps/renderer/out/
+*.log
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code (local)
+.claude/settings.local.json
