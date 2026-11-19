@@ -10,7 +10,18 @@ from pydantic import BaseModel
 
 from vitrina_api.deps import CurrentUser, Supabase
 
-router = APIRouter(tags=["organizaciones"])
+
+class ErrorResponse(BaseModel):
+    detail: str
+
+
+router = APIRouter(
+    tags=["organizaciones"],
+    responses={
+        401: {"model": ErrorResponse, "description": "Sin token o token inválido"},
+        404: {"model": ErrorResponse, "description": "No encontrado"},
+    },
+)
 
 
 class Organization(BaseModel):
